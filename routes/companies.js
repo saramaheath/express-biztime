@@ -12,7 +12,8 @@ const db = require("../db");
 router.get("/", async function (req, res) {
   const results = await db.query(
     `SELECT code, name 
-            FROM companies`
+            FROM companies
+            ORDER BY name`
   );
   const companies = results.rows;
   return res.json({ companies });
@@ -30,9 +31,11 @@ router.get("/:code", async function (req, res) {
             WHERE code = $1`,
     [code]
   );
-  const company = results.rows;
-  if (company.length === 0)
-    throw new NotFoundError(`no matching company with code: ${code}`);
+
+  const company = results.rows[0];
+  if (!company) {
+      throw new NotFoundError(`no matching company with code: ${code}`);
+  } 
 
   return res.json({ company });
 });
@@ -43,6 +46,9 @@ router.get("/:code", async function (req, res) {
  * */
 router.post("/", async function (req, res) {
   const { code, name, description } = req.body;
+  if(!code || !name || !description){
+    throw new BadRequestError(`must have code, name and description`);
+  }
 
   const result = await db.query(
     `INSERT INTO companies (code, name, description)
@@ -51,6 +57,7 @@ router.post("/", async function (req, res) {
     [code, name, description]
   );
   const company = result.rows[0];
+
   return res.status(201).json({ company });
 });
 
@@ -72,8 +79,9 @@ router.put("/:code", async function (req, res) {
     [name, description, code]
   );
   const company = result.rows[0];
-  if (company.length === 0)
-    throw new NotFoundError(`no matching company with code: ${code}`);
+  if (!company) {
+      throw new NotFoundError(`no matching company with code: ${code}`);
+  }
 
   return res.json({ company });
 });
@@ -92,8 +100,9 @@ router.delete("/:code", async function (req, res) {
     [code]
   );
   const codeResult = result.rows[0];
-  if (!codeResult)
-    throw new NotFoundError(`no matching company with code: ${code}`);
+  if (!codeResult) {
+      throw new NotFoundError(`no matching company with code: ${code}`);
+  }
 
   return res.json({ status: "deleted" });
 });
