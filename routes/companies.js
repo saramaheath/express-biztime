@@ -11,7 +11,7 @@ const db = require("../db");
  */
 router.get("/", async function (req, res) {
   const results = await db.query(
-    `SELECT code, name 
+    `SELECT code, name
             FROM companies
             ORDER BY name`
   );
@@ -26,7 +26,7 @@ router.get("/", async function (req, res) {
 router.get("/:code", async function (req, res) {
   const code = req.params.code;
   const results = await db.query(
-    `SELECT code, name, description 
+    `SELECT code, name, description
             FROM companies
             WHERE code = $1`,
     [code]
@@ -35,7 +35,7 @@ router.get("/:code", async function (req, res) {
   const company = results.rows[0];
   if (!company) {
       throw new NotFoundError(`no matching company with code: ${code}`);
-  } 
+  }
 
   return res.json({ company });
 });
@@ -60,8 +60,6 @@ router.post("/", async function (req, res) {
 
   return res.status(201).json({ company });
 });
-
-module.exports = router;
 
 /** edit existing company in database,
  * takes json body like: {name, description},
@@ -93,7 +91,7 @@ router.put("/:code", async function (req, res) {
 router.delete("/:code", async function (req, res) {
   const code = req.params.code;
   const result = await db.query(
-    `DELETE 
+    `DELETE
         FROM companies
         WHERE code = $1
         RETURNING code`,
@@ -106,3 +104,5 @@ router.delete("/:code", async function (req, res) {
 
   return res.json({ status: "deleted" });
 });
+
+module.exports = router;
