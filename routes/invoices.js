@@ -1,4 +1,4 @@
-"use strict"
+"use strict";
 
 const express = require("express");
 const { NotFoundError, BadRequestError } = require("../expressError");
@@ -9,7 +9,7 @@ const db = require("../db");
 /** queries all invoices from database,
  * returning json response like: {invoices: [{id, comp_code}, ...]}
  */
- router.get("/", async function (req, res) {
+router.get("/", async function (req, res) {
   const results = await db.query(
     `SELECT id, comp_code
             FROM invoices
@@ -48,34 +48,44 @@ const db = require("../db");
 /** Get message: {id, msg tags: [name, name]} */
 
 router.get("/:id", async function (req, res) {
-  const id = parseInt(req.params.id,10);
+  const id = parseInt(req.params.id, 10);
   const iResults = await db.query(
     `SELECT id, amt, paid, add_date, paid_date, comp_code
            FROM invoices
-           WHERE id = $1`, [id]);
+           WHERE id = $1`,
+    [id]
+  );
   const invoice = iResults.rows[0];
-  debugger
 
+  if (!invoice) {
+    throw new NotFoundError(`no matching company with id: ${id}`);
+  }
   const cResults = await db.query(
     `SELECT code, name, description
            FROM companies
-           WHERE name = $1
-           `, [invoice.comp_code]);
-  // message.tags = tResults.rows.map(r => r.tag);
+           WHERE code = $1
+           `,
+    [invoice.comp_code]
+  );
+
   const company = cResults.rows[0];
+  delete invoice.comp_code;
+  invoice["company"] = company;
 
-
-
-  return res.json({ invoice, company});
+  return res.json({ invoice });
 });
-// Returns {
-  // invoice: {id, amt, paid, add_date, paid_date,
-// company: {code, name, description}
-// }
 
-
-
-
+router.post("/", async function (req, res){
+  const { comp_code, amt } = req.body;
+  const results = await db.query(
+    `INSERT INTO invoices (comp_code, amt)
+          VALUES ($1, $2)
+          RETURNING id, comp_code, amt, paid, add_date, paid_date `,
+          [comp_code, amt]
+  );
+  const invoice = results.rows[0]
+  return res.json({ invoice });
+})
 
 
 module.exports = router;
