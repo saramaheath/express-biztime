@@ -19,33 +19,11 @@ router.get("/", async function (req, res) {
   return res.json({ invoices });
 });
 
-/** queries one invoice from database,
- * takes an invoice id,
- * returns json response like:
- * {
- * invoice:
- * {id, amt, paid, add_date, paid_date, company: {code, name, description}
- * }
+/** queries invoice from database,
+ * takes invoice id param
+ * returns json response like: 
+ * {invoice: {id, amt, paid, add_date, paid_date, company: {code, name, description}}
  */
-//  router.get("/:id", async function (req, res) {
-//   const id = parseInt(req.params.id,10);
-//   console.log('*********************************',id);
-//   const results = await db.query(
-//     `SELECT id, amt, paid, add_date, paid_date, code, name, description
-//             FROM invoices JOIN company
-//             WHERE comp_code = $1`,
-//     [id]
-//   );
-//   console.log('*********************************',results.row[0]);
-//   const invoice = results.rows[0];
-//   if (!invoice) {
-//       throw new NotFoundError(`no matching invoice with code: ${id}`);
-//   }
-
-//   return res.json({ invoice });
-// });
-
-/** Get message: {id, msg tags: [name, name]} */
 
 router.get("/:id", async function (req, res) {
   const id = parseInt(req.params.id, 10);
@@ -74,6 +52,12 @@ router.get("/:id", async function (req, res) {
 
   return res.json({ invoice });
 });
+
+/** adds an invoice to the database
+ * takes json body like: {comp_code, amt},
+ * returns json response like: {invoice: 
+ * {id, comp_code, amt, paid, add_date, paid_date}}
+ */
 
 router.post("/", async function (req, res){
   const { comp_code, amt } = req.body;
